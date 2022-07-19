@@ -1,5 +1,6 @@
 const express = require('express');
-const fileUpload = require('express-fileupload')
+const fileUpload = require('express-fileupload');
+const crypto = require('crypto');
 const app = express();
 
 app.use(fileUpload({
@@ -8,8 +9,29 @@ app.use(fileUpload({
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
+app.get("/skin/:id", (req, res) => {
+res.sendFile(__dirname+"/files/skins/"+req.params.id);
+});
 app.get("/", (req, res) => {
-  res.json({"sucess": true});
-})
+ res.json({"res": "Successful connection to BFR"});
+});
+app.post('/upload-skin', async (req, res) => {
+    try {
+        if(!req.files) {
+            res.json({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            let avatar = req.files.image;
+            let name = crypto.randomUUID();
+            avatar.mv(__dirname+'/files/skins/' + name);
+            res.send(name);
+        }
+    } catch (err) {
+      console.log(err);
+        res.status(500).send(err);
+    }
+});
 
 app.listen(3000);
